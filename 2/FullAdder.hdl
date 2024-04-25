@@ -11,5 +11,24 @@ CHIP FullAdder {
         carry;   // Left bit of a + b + c
 
     PARTS:
-    //// Replace this comment with your code.
+
+    Not(in = a, out = notA);
+
+    // if a == 0
+    HalfAdder(a = b, b = c, sum = sumTemp1, carry = carryTemp1);
+    
+    And(a = notA, b = sumTemp1, out = sumTemp1Final);
+    And(a = notA, b = carryTemp1, out = carryTemp1Final);
+
+    // if a == 1
+    Or(a = b, b = c, out = carryTemp2);
+    Xor(a = b, b = c, out = notSum);
+    Not(in = notSum, out = sumTemp2);
+
+    And(a = a, b = sumTemp2, out = sumTemp2Final);
+    And(a = a, b = carryTemp2, out = carryTemp2Final);
+
+    // OR them together
+    Or(a = sumTemp1Final, b = sumTemp2Final, out = sum);
+    Or(a = carryTemp1Final, b = carryTemp2Final, out = carry);
 }

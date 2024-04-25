@@ -41,5 +41,85 @@ CHIP ALU {
         ng;      // if (out < 0)  equals 1, else 0
 
     PARTS:
-    //// Replace this comment with your code.
+
+    // compilation of all input bools for convenience
+    Mux16 (a = false, b = true, sel = zx, out = allZx);
+    Not16 (in = allZx, out = allNotZx);
+
+    Mux16 (a = false, b = true, sel = nx, out = allNx);
+    Not16 (in = allNx, out = allNotNx);
+
+    Mux16 (a = false, b = true, sel = zy, out = allZy);
+    Not16 (in = allZy, out = allNotZy);
+
+    Mux16 (a = false, b = true, sel = ny, out = allNy);
+    Not16 (in = allNy, out = allNotNy);
+
+    Mux16 (a = false, b = true, sel = f, out = allF);
+    Not16 (in = allF, out = allNotF);
+
+    Mux16 (a = false, b = true, sel = no, out = allNo);
+    Not16 (in = allNo, out = allNotNo);
+
+    // zx portion
+        // if (zx == 1) sets x = 0        // 16-bit constant
+        And16 (a = allNotZx, b = x, out = x1);
+
+    // nx portion
+        // if (nx == 1) sets x = !x       // bitwise not
+        Not16 (in = x1, out = notX); 
+        
+        // if (allNx == 1), x2 = notX
+        And16 (a = allNx, b = notX, out = xTempNotX);
+
+        // if (allNx == 0), x2 = x1
+        And16 (a = allNotNx, b = x1, out = xTempX);
+
+        // Or together
+        Or16 (a = xTempNotX, b = xTempX, out = x2);
+
+    // zy portion
+        // if (zy == 1) sets y = 0        // 16-bit constant
+        And16 (a = allNotZy, b = y, out = y1);
+
+    // ny portion
+        // if (ny == 1) sets y = !y       // bitwise not
+        Not16 (in = y1, out = notY); 
+        
+        // if (allNy == 1), y2 = notY
+        And16 (a = allNy, b = notY, out = yTempNotY);
+
+        // if (allNy == 0), y2 = y1
+        And16 (a = allNotNy, b = y1, out = yTempY);
+
+        // Or together
+        Or16 (a = yTempNotY, b = yTempY, out = y2);
+
+    // f portion
+        // x + y
+        Add16 (a = x2, b = y2, out = XPlusY);
+        // x & y
+        And16 (a = x2, b = y2, out = XAndY);
+
+        // if (f == 1)  sets out = x + y  // integer 2's complement addition
+        And16 (a = allF, b = XPlusY, out = XPlusYtemp);
+
+        // if (f == 0)  sets out = x & y  // bitwise and
+        And16 (a = allNotF, b = XAndY, out = xAndYtemp);
+        
+        // Or together
+        Or16 (a = XPlusYtemp, b = xAndYtemp, out = out1);
+
+    // no portion
+        // !out
+        Not16 (in = out1, out = notOut);
+
+        // if (no == 1) sets out = !out   // bitwise not
+        And16 (a = allNo, b = notOut, out = notOutTemp);
+
+        // if (no == 0), out = out
+        And16 (a = allNotNo, b = out1, out = outTemp);
+
+        // Or together
+        Or16 (a = notOutTemp, b = outTemp, out = out);
 }

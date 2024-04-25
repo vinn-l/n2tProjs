@@ -20,5 +20,15 @@ CHIP Mux8Way16 {
     OUT out[16];
 
     PARTS:
-    //// Replace this comment with your code.
+    // sel[2] = 0
+    Mux4Way16(a = a, b = b, c = c, d = d, sel = sel[0..1], out = temp0);
+    Mux16 (a = false, b = true, sel = sel[2], out = sel2);
+    Not16 (in = sel2, out = notSel2);
+    And16 (a = notSel2, b = temp0, out = notSel2AndTemp2);
+
+    // sel[2] = 1
+    Mux4Way16(a = e, b = f, c = g, d = h, sel = sel[0..1], out = temp1);
+    And16(a = sel2, b = temp1, out = sel2AndTemp1);
+
+    Or16 (a = notSel2AndTemp2, b = sel2AndTemp1, out = out);
 }
